@@ -1,6 +1,8 @@
 # Battleships - Changelog
 
-## [UNRELEASED] - 2019/11/28
+## v1 - 2019/11/28
+- Added multiplayer.
+- Added full battleships game.
 - Added Game and Level managers.
 - Added event logic.
 - Added Primitive game objects.

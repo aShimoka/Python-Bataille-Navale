@@ -30,7 +30,7 @@ class RemotePlayer(Player):
         # Check the type of the game.
         self.client = None
         self.game_type = 'client'
-        self.game_port = 8080
+        self.game_port = 61888
         self.game_addr = '127.0.0.1'
         for i in range(len(sys.argv)):
             # If the game is in server mode.
