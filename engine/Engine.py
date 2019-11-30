@@ -56,6 +56,7 @@ class Engine:
     __loaded_level = None
     # All loaded sounds.
     __sounds = {}
+    __silenced = False
 
     @classmethod
     def initialize(cls):
@@ -72,6 +73,10 @@ class Engine:
                 if arg_i + 1 < len(sys.argv):
                     # Load the file at this location.
                     config_files.append("Data/%s.ini" % sys.argv[arg_i + 1])
+
+            # Check for the --silenced flag.
+            if sys.argv[arg_i] == "--silenced":
+                cls.__silenced = True
 
         # Try to load the configuration file(s).
         cls.__config.read(config_files)
@@ -130,6 +135,9 @@ class Engine:
 
     @classmethod
     def play_sound(cls, sound_path, loops=0, fade=0):
+        # If the game is silent, do nothing.
+        if cls.__silenced:
+            return
         # Load the sound.
         sound = None
         # If it was already loaded.
@@ -147,6 +155,9 @@ class Engine:
 
     @classmethod
     def stop_sound(cls, sound_path):
+        # If the game is silent, do nothing.
+        if cls.__silenced:
+            return
         # If it was already loaded.
         if sound_path in cls.__sounds.keys():
             # Load the cached version.
@@ -154,7 +165,7 @@ class Engine:
             # Stop the sound.
             sound.stop()
         else:
-            raise KeyError("The sound {} was not loaded.".format(sound_path))
+            print("The sound {} was not loaded.".format(sound_path))
 
     @classmethod
     def __setup(cls):

@@ -179,6 +179,7 @@ class HumanPlayer(Player, engine.InputListener):
         )
         col.transform.position = (at * self.shot_board.CELL_SIZE) - (self.shot_board.get_size() / 2)
         col.transform.offset = copy(engine.math.UNIT_VECTOR)
+        engine.Engine.play_sound("WaterExplosion" if hit_type == self.SHOT_HIT_TYPE_MISS else "Explosion")
 
         # Show the hit status.
         if hit_type == self.SHOT_HIT_TYPE_MISS:

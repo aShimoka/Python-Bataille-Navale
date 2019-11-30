@@ -28,6 +28,7 @@ class RemotePlayer(Player):
         # Create the socket.
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Check the type of the game.
+        self.client = None
         self.game_type = 'client'
         self.game_port = 8080
         self.game_addr = '127.0.0.1'
@@ -47,7 +48,6 @@ class RemotePlayer(Player):
             self.socket.bind((self.game_addr, self.game_port))
             self.socket.listen(1)
 
-        self.client = None
 
     def __del__(self):
         if self.client is not None:

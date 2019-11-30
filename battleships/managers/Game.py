@@ -20,7 +20,7 @@ class Game(engine.LevelManager):
     PLAYERS = [PLAYER_1, PLAYER_2]
 
     # Delay between each phase of the game.
-    DELAY = 1
+    DELAY = 2
 
     # List of all the phases of the game.
     PHASE_PREPARE = -1
