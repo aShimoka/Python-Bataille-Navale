@@ -5,6 +5,7 @@ import engine
 import sys
 
 # Import the player indices.
+from battleships import glvars
 from battleships.managers.GameManager import PLAYER_1, PLAYER_2
 # Import the Player class.
 from battleships.players.Player import Player
@@ -47,9 +48,8 @@ class Game(engine.LevelManager):
         # Set the current player index.
         self.current_player_index = 0
         # If we are the client, the server goes first.
-        for i in range(len(sys.argv)):
-            if sys.argv[i] == "--client":
-                self.current_player_index = 1
+        if not glvars.g_options.server:
+            self.current_player_index = 1
 
         # Prepare the phase counter.
         self.__current_phase = Game.PHASE_PREPARE

@@ -9,6 +9,7 @@ import json
 import engine
 
 # Import the player base class.
+from battleships import glvars
 from battleships.players.Player import Player
 
 
@@ -29,19 +30,9 @@ class RemotePlayer(Player):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Check the type of the game.
         self.client = None
-        self.game_type = 'client'
-        self.game_port = 61888
-        self.game_addr = '127.0.0.1'
-        for i in range(len(sys.argv)):
-            # If the game is in server mode.
-            if sys.argv[i] == "--server":
-                self.game_type = 'server'
-            elif sys.argv[i] == "--client":
-                self.game_type = 'client'
-            elif sys.argv[i] == "--port" and len(sys.argv) > i:
-                self.game_port = int(sys.argv[i + 1])
-            elif sys.argv[i] == "--address" and len(sys.argv) > i:
-                self.game_addr = sys.argv[i + 1]
+        self.game_type = 'server' if glvars.g_options.server else 'client'
+        self.game_port = glvars.g_options.port
+        self.game_addr = glvars.g_options.host
 
         # Paste those parameters.
         if self.game_type == 'server':

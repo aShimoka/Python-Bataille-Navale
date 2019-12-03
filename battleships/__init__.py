@@ -1,9 +1,11 @@
 #  Copyright © 2019 CAILLAUD Jean-Baptiste.
+import battleships.glvars as glvars
 from engine import Engine
 from engine.input.CloseOnEscapeOrQuit import CloseOnEscapeOrQuit
 from engine.logic.GameManager import GameManager
 from engine.logic.Math import Vector2
-from engine.logic.Primitives import RectGameObject, LineGameObject
+from engine.logic.Primitives import RectGameObject
+
 
 class MovingRect(RectGameObject):
     def tick(self, dt):
@@ -12,6 +14,7 @@ class MovingRect(RectGameObject):
             self.transform.position.x = 0
         pass
 
+
 class GameMode(GameManager):
     def begin(self):
         rect = MovingRect(Engine.scene, Vector2(128, 128), 5, (255, 0, 0), (0, 255, 0))
@@ -19,7 +22,7 @@ class GameMode(GameManager):
         Engine.input_handler.add_listener(CloseOnEscapeOrQuit())
 
 
-def start():
-    Engine.initialize()
+def start(options):
+    Engine.initialize(options)
 
     Engine.start()

@@ -58,28 +58,50 @@ class Engine:
     __sounds = {}
     __silenced = False
 
+    __config_files_buffer = ["Data/GameConfig.ini"]
+
     @classmethod
-    def initialize(cls):
+    def queue_config_file(cls, name):
+        # mark the file at this location.
+        cls.__config_files_buffer.append("Data/%s.ini" % name)
+
+    @classmethod
+    def set_game_silenced(cls, boolval=True):
+        cls.__silenced = boolval
+
+    @classmethod
+    def initialize(cls, game_options=None):
         """
         Class initializer.
         Initializes the game engine singleton.
         """
-        # Check if an additional configuration file was specified.
-        config_files = ["Data/GameConfig.ini"]
-        for arg_i in range(len(sys.argv)):
-            # Check for the --config or -c flag.
-            if sys.argv[arg_i] == "--config" or sys.argv[arg_i] == "-c":
-                # If there is an argument behind.
-                if arg_i + 1 < len(sys.argv):
-                    # Load the file at this location.
-                    config_files.append("Data/%s.ini" % sys.argv[arg_i + 1])
 
-            # Check for the --silenced flag.
-            if sys.argv[arg_i] == "--silenced":
-                cls.__silenced = True
+        # - this way of parsing may be useful sometimes, but it is not standard
+        # let's keep it but make it optionnal with "game_options" param
+
+        if game_options is None:
+            # - legacy parsing
+            # Check if an additional configuration file was specified
+            for arg_i in range(len(sys.argv)):
+                # Check for the --config or -c flag.
+                if sys.argv[arg_i] == "--config" or sys.argv[arg_i] == "-c":
+                    # If there is an argument behind.
+                    if arg_i + 1 < len(sys.argv):
+                        # mark the file at this location.
+                        cls.queue_config_file("Data/%s.ini" % sys.argv[arg_i + 1])
+
+                # Check for the --silenced flag.
+                if sys.argv[arg_i] == "--silenced":
+                    cls.set_game_silenced()
+
+        else:
+            # - new way of parsing (done upfront, takes only one more config_file)
+            cls.queue_config_file(game_options.config_file)
+            if game_options.mute_sound:
+                cls.set_game_silenced()
 
         # Try to load the configuration file(s).
-        cls.__config.read(config_files)
+        cls.__config.read(cls.__config_files_buffer)
 
         # Read the renderer info.
         render_info = cls.__config["Renderer"]

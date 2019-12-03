@@ -6,25 +6,23 @@
 </p>
 
 # Battleships - Python
-_This is a Python3 project made to recreate the game "Battleships" with networked multiplayer capabilities._
+_This is a Python3 project made to re-create the "Battleships" game with multiplayer support_
 
-## Running the project.
-To run the project, simply clone this repository and start the [main.py](main.py) file.
+The project has been published via github using the MIT License and is therefore open-source.
 
-## Arguments
-__REQUIRED:__ `--config (or -c) [CONFIG_FILE_NAME]`
-Selects the configuration of the game. Use `MultiplayerConfig` for the default multiplayer mode or `SingleplayerConfig` 
-for a single player game. (**NOTE: The singleplayer is *not* working for now**)
+## How to run the project
+Simply clone the repository, and run the [main.py](main.py) script file
 
-`--server`
-Launches the instance of the game in server mode.
+## Program usage
+`main.py -c CONFIG_FILE [-h HOST] [-p PORT] [-s] [-m] [-?]`
 
-`--client`
-Launches the instance of the game in client mode.
+**Example:**
 
-`--port [PORT]`
-The port to use for multiplayer sessions.
+`main.py -c SingleplayerConfig`
 
-`--address [ADDRESS]` The listening address used by the server or the address to connect to for the client.
+For more information, type `main.py -?` or `main.py --help`
 
-`--silenced` Turns all sounds off.
+## Authors / contributor list
+
+* [yShimoka](github.com/yShimoka) - game engine & main game features
+* [wkta](https://github.com/wkta) - artifical opponent & various improvements (speed, arg parsing...)
