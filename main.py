@@ -31,8 +31,8 @@ required.add_argument('-c', '--config-file', help=argdesc['-c'], required=True)
 # optional args
 optional = _parser.add_argument_group('optional arguments')
 
-_parser.add_argument('-h', '--host', help=argdesc['-h'], default='localhost')
-_parser.add_argument('-p', '--port', help=argdesc['-p'], default=21337, type=int)
+_parser.add_argument('-h', '--host', help=argdesc['-h'], default=dhost)
+_parser.add_argument('-p', '--port', help=argdesc['-p'], default=dport, type=int)
 
 _parser.add_argument('-s', '--server', help=argdesc['-s'], action='store_true')
 

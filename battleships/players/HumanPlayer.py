@@ -10,7 +10,7 @@ from battleships.objects import ShipBoard, ShotBoard
 # Import the player base class.
 from battleships.players.Player import Player
 # Import the game texts.
-from battleships.objects.GameStateTexts import GameStateTexts
+from battleships.objects.InGameConsole import InGameConsole
 
 # Import the pygame locals.
 import pygame.locals
@@ -57,8 +57,8 @@ class HumanPlayer(Player, engine.InputListener):
         self.shot_board.transform.position = engine.math.Vector2(256, 256)
 
         # Create the texts.
-        self.texts = GameStateTexts(engine.Engine.scene)
-        self.texts.transform.position = engine.math.Vector2(256, 564)
+        self.texts = InGameConsole(engine.Engine.scene)
+        self.texts.transform.position = engine.math.Vector2(256, 608)
 
         # Add the boats back to the tree.
         for ship in self.boat_list:
@@ -69,20 +69,20 @@ class HumanPlayer(Player, engine.InputListener):
         """
         Starts the turn of the human player.
         """
-        self.texts.show_text(self.texts.TEXT_GAME_NEW_TURN)
+        self.texts.show_std_text(self.texts.TEXT_GAME_NEW_TURN)
 
     def end_turn(self):
         """
         Ends the player turn.
         """
-        self.texts.show_text(self.texts.TEXT_GAME_END_TURN)
+        self.texts.show_std_text(self.texts.TEXT_GAME_END_TURN)
 
     def request_shot(self):
         """
         Triggers the player's fire mode.
         """
         # Display the text.
-        self.texts.show_text(self.texts.TEXT_GAME_REQ_FIRE)
+        self.texts.show_std_text(self.texts.TEXT_GAME_REQ_FIRE)
 
         # Display the shots board.
         self.shot_board.visible = True
@@ -100,7 +100,7 @@ class HumanPlayer(Player, engine.InputListener):
         if super().fire(at):
             engine.Engine.play_sound("Fire")
             # Display the text.
-            self.texts.show_text(self.texts.TEXT_GAME_DO_SHOOT)
+            self.texts.show_std_text(self.texts.TEXT_GAME_DO_SHOOT)
             return True
         else:
             return False
@@ -114,7 +114,7 @@ class HumanPlayer(Player, engine.InputListener):
         touched = self.ship_board.collision_check(at, 1, 1)
 
         # Display the text.
-        self.texts.show_text(self.texts.TEXT_GAME_REQ_HIT)
+        self.texts.show_std_text(self.texts.TEXT_GAME_REQ_HIT)
 
         # Add a hit marker.
         col = engine.TexturedGameObject(
@@ -157,11 +157,11 @@ class HumanPlayer(Player, engine.InputListener):
         """
         super().hit(at, hit_status)
         if hit_status == self.SHOT_HIT_TYPE_MISS:
-            self.texts.show_text(self.texts.TEXT_GAME_GET_HIT_MISS)
+            self.texts.show_std_text(self.texts.TEXT_GAME_GET_HIT_MISS)
         elif hit_status == self.SHOT_HIT_TYPE_HIT:
-            self.texts.show_text(self.texts.TEXT_GAME_GET_HIT_HIT)
+            self.texts.show_std_text(self.texts.TEXT_GAME_GET_HIT_HIT)
         else:
-            self.texts.show_text(self.texts.TEXT_GAME_GET_HIT_SUNK)
+            self.texts.show_std_text(self.texts.TEXT_GAME_GET_HIT_SUNK)
 
     def show_hit(self, at: engine.math.Vector2, hit_type: int):
         """
@@ -183,16 +183,16 @@ class HumanPlayer(Player, engine.InputListener):
 
         # Show the hit status.
         if hit_type == self.SHOT_HIT_TYPE_MISS:
-            self.texts.show_text(self.texts.TEXT_GAME_SHOW_HIT_MISS)
+            self.texts.show_std_text(self.texts.TEXT_GAME_SHOW_HIT_MISS)
         elif hit_type == self.SHOT_HIT_TYPE_HIT:
-            self.texts.show_text(self.texts.TEXT_GAME_SHOW_HIT_HIT)
+            self.texts.show_std_text(self.texts.TEXT_GAME_SHOW_HIT_HIT)
         else:
-            self.texts.show_text(self.texts.TEXT_GAME_SHOW_HIT_SUNK)
+            self.texts.show_std_text(self.texts.TEXT_GAME_SHOW_HIT_SUNK)
 
     def await_opponent_shot(self):
         self.shot_board.visible = False
         self.ship_board.visible = True
-        self.texts.show_text(self.texts.TEXT_GAME_AWAIT_SHOT)
+        self.texts.show_std_text(self.texts.TEXT_GAME_AWAIT_SHOT)
 
     def handle_input(self, event):
         """
