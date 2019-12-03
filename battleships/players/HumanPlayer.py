@@ -6,6 +6,7 @@ from copy import copy
 import engine
 
 # Import the boards.
+from battleships import glvars
 from battleships.objects import ShipBoard, ShotBoard
 # Import the player base class.
 from battleships.players.Player import Player
@@ -171,11 +172,15 @@ class HumanPlayer(Player, engine.InputListener):
         """
         # Call the parent method.
         super().show_hit(at, hit_type)
+
+        if hit_type == self.SHOT_HIT_TYPE_MISS:
+            adhoc_texture_path = "Miss_theme{}".format(glvars.colortheme)
+        else:
+            adhoc_texture_path = "Hit_theme{}".format(glvars.colortheme)
+
         # Create the rect on the shot board.
         col = engine.TexturedGameObject(
-            self.shot_board,
-            "Miss" if hit_type == self.SHOT_HIT_TYPE_MISS else "Hit",
-            engine.math.Vector2(48, 48)
+            self.shot_board, adhoc_texture_path, engine.math.Vector2(48, 48)
         )
         col.transform.position = (at * self.shot_board.CELL_SIZE) - (self.shot_board.get_size() / 2)
         col.transform.offset = copy(engine.math.UNIT_VECTOR)
