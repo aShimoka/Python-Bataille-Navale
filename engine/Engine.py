@@ -41,17 +41,19 @@ class Engine:
     input_handler = InputHandler()
     # Scene instance.
     scene = GameObject()
-    # Time since the last frame.
-    frame_time = 0
     # Name of the level currently loaded.
     current_level = None
+
+    FPS_CAP = 80
+    # utility clock
+    __engine_clock = time.Clock()
+    # Time since the last frame.
+    frame_time = 0
 
     # Configuration object.
     __config = ConfigParser()
     # Looping status.
     __is_looping = False
-    # Last frame's timestamp.
-    __frame_timestamp = time.get_ticks()
     # Next level to load.
     __loaded_level = None
     # All loaded sounds.
@@ -121,6 +123,7 @@ class Engine:
         cls.__setup()
 
         # Loop until the engine is stopped.
+        cls.__engine_clock.tick()
         while cls.__is_looping:
             # Call the loop.
             cls.__loop()
@@ -214,9 +217,6 @@ class Engine:
 
     @classmethod
     def __loop(cls):
-        # Compute the new frame time.
-        cls.frame_time = (time.get_ticks() - cls.__frame_timestamp) / 1000
-        cls.__frame_timestamp = time.get_ticks()
         # Call the object's tick method.
         cls.scene._tick_internal(cls.frame_time)
         # Call the manager's tick method.
@@ -224,6 +224,11 @@ class Engine:
 
         # Render the renderables.
         cls.renderer.render()
+
+        # Compute the new frame time.
+        cls.__engine_clock.tick(cls.FPS_CAP)
+        cls.frame_time = cls.__engine_clock.get_time() / 1000
+
         # Handle the events.
         cls.input_handler.handle_events()
 

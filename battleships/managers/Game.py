@@ -20,9 +20,6 @@ class Game(engine.LevelManager):
     # List of all the player indices.
     PLAYERS = [PLAYER_1, PLAYER_2]
 
-    # Delay between each phase of the game.
-    DELAY = 2
-
     # List of all the phases of the game.
     PHASE_PREPARE = -1
     PHASE_START_TURN = 0
@@ -41,6 +38,11 @@ class Game(engine.LevelManager):
         :param config: The configuration info.
         """
         super().__init__(config)
+
+        # the _delay (object's protected attribute) determines how long one waits between each phase of the game
+        self._delay = 2.0  # default hardcoded delay, in sec
+        if 'Gameplay' in self.config and 'delay' in self.config['Gameplay']:
+            self._delay = float(self.config['Gameplay']['delay'])
 
         # Prepare the timer.
         self.timer = 0
@@ -77,7 +79,7 @@ class Game(engine.LevelManager):
         self.timer += dt
 
         # If the timer reached the end.
-        if self.timer > Game.DELAY:
+        if self.timer > self._delay:
             # Reset the timer.
             self.timer = 0
 
