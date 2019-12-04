@@ -1,7 +1,7 @@
 #  Copyright © 2019
 #  authored by Jean-Baptiste CAILLAUD et al.
 #  contributor list on: https://github.com/yShimoka/python-bataille-navale
-
+import random
 from copy import copy
 
 from battleships import glvars
@@ -59,7 +59,26 @@ class FleetModel:
 
     @classmethod
     def generate_random_fleet(cls):
-        raise NotImplementedError()
+        obj = cls()
+
+        # for each boat type...
+        ncells = list(range(10*10))
+        random.shuffle(ncells)
+
+        for btype in cls.BOAT_TYPES:
+            # brute force randomized search
+            placement_ok = False
+            while not placement_ok:
+                n = ncells.pop()  # pick a random cell
+                i, j = n % 10, n // 10
+                rdir = random.choice((cls.F_EAST, cls.F_SOUTH))
+
+                if obj.can_add(btype, Vector2(i, j), rdir):
+                    placement_ok = True
+                    obj.add_boat(btype, Vector2(i, j), rdir)
+
+        assert(obj.is_full())
+        return obj
 
     def has(self, boat_type):
         return boat_type in self._btype_to_origincell

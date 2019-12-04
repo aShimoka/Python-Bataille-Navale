@@ -107,6 +107,12 @@ class Game(engine.LevelManager):
         self.__current_fire_location = at
         self.__current_fire_effect = hit_result
 
+        # provide feedback to the bot, if its a solo game
+        if glvars.g_options.config_file == 'solo':
+            pl = self.__get_current_player()
+            if not pl.is_human():
+                pl.input_feedback(at.tuple(), hit_result)
+
         # Move on to the hit response.
         self.__current_phase = self.PHASE_SHOW_HIT
 
