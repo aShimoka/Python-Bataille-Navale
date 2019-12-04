@@ -1,20 +1,16 @@
-#  Copyright © 2019 CAILLAUD Jean-Baptiste.
+#  Copyright © 2019
+#  authored by Jean-Baptiste CAILLAUD et al.
+#  contributor list on: https://github.com/yShimoka/python-bataille-navale
 
-# Import the engine module.
 from copy import copy
 
-import engine
+import pygame.locals
 
-# Import the boards.
+import engine
 from battleships import glvars
 from battleships.objects import ShipBoard, ShotBoard
-# Import the player base class.
-from battleships.players.Player import Player
-# Import the game texts.
 from battleships.objects.InGameConsole import InGameConsole
-
-# Import the pygame locals.
-import pygame.locals
+from battleships.players.Player import Player
 
 
 class HumanPlayer(Player, engine.InputListener):
@@ -31,7 +27,8 @@ class HumanPlayer(Player, engine.InputListener):
         super().__init__()
 
         # Prepares the boat list.
-        self.boat_list = []
+        self.boat_list = None
+        self.fleet = None
 
         # Prepare the boards.
         self.ship_board = None
@@ -45,6 +42,7 @@ class HumanPlayer(Player, engine.InputListener):
         """
         # Loads the boat list.
         self.boat_list = engine.Engine.game_manager.human_boats
+        self.fleet = engine.Engine.game_manager.human_fleet
 
         # Create the ships board.
         self.ship_board = ShipBoard(engine.Engine.scene)
@@ -112,7 +110,7 @@ class HumanPlayer(Player, engine.InputListener):
         :param at: Where the shot was made.
         """
         # Get the touched boat.
-        touched = self.ship_board.collision_check(at, 1, 1)
+        touched_t = self.fleet.collision_check(at, 1, 1)
 
         # Display the text.
         self.texts.show_std_text(self.texts.TEXT_GAME_REQ_HIT)
@@ -120,35 +118,32 @@ class HumanPlayer(Player, engine.InputListener):
         # Add a hit marker.
         col = engine.TexturedGameObject(
             self.ship_board,
-            "WaterSplash" if touched is None else "BoatDamage",
+            "WaterSplash" if touched_t is None else "BoatDamage",
             engine.math.Vector2(48, 48)
         )
         col.transform.position = (at * self.shot_board.CELL_SIZE) - (self.shot_board.get_size() / 2)
         col.transform.offset = copy(engine.math.UNIT_VECTOR)
 
         # Compute the hit status.
-        if touched is None:
+        if touched_t is None:
             engine.Engine.play_sound("WaterExplosion")
             # Tell the game that he did not hit.
             self.hit(at, self.SHOT_HIT_TYPE_MISS)
-        else:
-            engine.Engine.play_sound("Explosion")
-            # Increment the damages on the boat.
-            touched.damage += 1
+            return
 
-            # If the ship is sunk.
-            if touched.damage >= touched.length:
-                # If all ships are sunk
-                all_sunk = True
-                for ship in self.ship_board.placed_ships:
-                    if ship.damage < ship.length:
-                        all_sunk = False
-                        break
-                # Tell the game that he sunk a ship.
-                self.hit(at, self.SHOT_HIT_TYPE_GAME_OVER if all_sunk else self.SHOT_HIT_TYPE_HIT_AND_SUNK)
-            else:
-                # Tell the game that he hit a ship.
-                self.hit(at, self.SHOT_HIT_TYPE_HIT)
+        engine.Engine.play_sound("Explosion")
+        # Increment the damages on the boat.
+        self.fleet.damage(touched_t)
+
+        if not self.fleet.is_sunk(touched_t):  # hit, but not sunk
+            self.hit(at, self.SHOT_HIT_TYPE_HIT)
+
+        else:
+            if self.fleet.is_sunk():  # all ships just sunk
+                self.hit(at, self.SHOT_HIT_TYPE_GAME_OVER)
+
+            else:  # some ships remain
+                self.hit(at, self.SHOT_HIT_TYPE_HIT_AND_SUNK)
 
     def hit(self, at: engine.math.Vector2, hit_status: int):
         """

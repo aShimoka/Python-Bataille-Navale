@@ -1,18 +1,18 @@
-#  Copyright © 2019 CAILLAUD Jean-Baptiste.
+#  Copyright © 2019
+#  authored by Jean-Baptiste CAILLAUD et al.
+#  contributor list on: https://github.com/yShimoka/python-bataille-navale
 
-# Import the abstract class.
 from abc import ABC
-# Import the copy tool.
 from copy import copy
-# Import pygame
+
 import pygame
 import pygame.locals
 
-# Import the engine.
 import engine
+from battleships.objects.FleetModel import FleetModel
 
 
-class Ship(engine.TexturedGameObject, engine.InputListener, ABC):
+class ShipWidget(engine.TexturedGameObject, engine.InputListener, ABC):
     """
     Base class for all the ships that are usable on the level.
 
@@ -22,7 +22,7 @@ class Ship(engine.TexturedGameObject, engine.InputListener, ABC):
         rotation    The rotation angle of the ship.
     """
 
-    def __init__(self, board, length, texture):
+    def __init__(self, btype, board, length, texture):
         """
         Class constructor.
         Creates a new ship instance.
@@ -32,6 +32,10 @@ class Ship(engine.TexturedGameObject, engine.InputListener, ABC):
         """
         # Call the parent constructor.
         super().__init__(board, texture, engine.math.Vector2(49, 48 * length + 1))
+
+        self.btype = btype  # linked to the model...
+        self._model_ref = board.fleet
+
         self.texture = self.texture.convert_alpha()
         self.base_texture = self.texture.copy()
         self.base_size = copy(self.size)
@@ -48,7 +52,6 @@ class Ship(engine.TexturedGameObject, engine.InputListener, ABC):
         # Store the initial position of the ship.
         self.initial_position = copy(self.transform.position)
         self.initial_rotation = self.rotation
-        self.__is_on_board = False
 
     def enable_drag(self):
         """
@@ -85,9 +88,6 @@ class Ship(engine.TexturedGameObject, engine.InputListener, ABC):
                 self.initial_rotation = self.rotation
                 # Move the boat to the position.
                 self.transform.set_world_position(engine.math.Vector2(event.pos[0], event.pos[1]))
-                # If the boat was on the board.
-                if self.__is_on_board:
-                    self.board.remove_boat(self)
 
         # Check if the mouse was released.
         if event.type == pygame.locals.MOUSEBUTTONUP:
@@ -95,17 +95,19 @@ class Ship(engine.TexturedGameObject, engine.InputListener, ABC):
                 # Drop the ship.
                 self.__is_grabbed = False
                 # If the position is valid.
-                if self.board.position_is_valid(self.get_cell(), self.length, self.rotation):
+                newcell = self.get_cell()
+                if self.board.fleet.can_add(self.btype, newcell, self.rotation):
+
                     # Place the boat on the board.
-                    self.board.place_boat(self)
-                    self.__is_on_board = True
+                    if self.board.fleet.has(self.btype):
+                        self.board.proxy_update_boat(self, newcell, self.rotation)
+                    else:
+                        self.board.proxy_add_boat(self, newcell, self.rotation)
+
                 else:
                     # Put the boat back at its place.
                     self.transform.set_world_position(self.initial_position)
                     self.rotate(self.initial_rotation)
-                    # If the boat was on the board, put it back.
-                    if self.__is_on_board:
-                        self.board.place_boat(self)
 
         # Check if the mouse moved.
         if event.type == pygame.locals.MOUSEMOTION:
@@ -142,7 +144,6 @@ class Ship(engine.TexturedGameObject, engine.InputListener, ABC):
         :param angle: The angle to rotate the ship by.
         """
         # Compute the angle from the given value.
-        deg_angle = None
         if angle == 1:
             deg_angle = 0
         elif angle == 2:
@@ -165,7 +166,7 @@ class Ship(engine.TexturedGameObject, engine.InputListener, ABC):
         self.rotation = angle
 
 
-class AircraftCarrier(Ship):
+class AircraftCarrier(ShipWidget):
     """
     Class representing an aircraft carrier.
     """
@@ -177,10 +178,10 @@ class AircraftCarrier(Ship):
         :param parent: The parent of the ship.
         """
         # Call the parent constructor.
-        super().__init__(parent, 5, "AircraftCarrier")
+        super().__init__(FleetModel.AIRCRAFT_CARRIER, parent, 5, "AircraftCarrier")
 
 
-class BattleShip(Ship):
+class BattleShip(ShipWidget):
     """
     Class representing a battleship.
     """
@@ -192,10 +193,10 @@ class BattleShip(Ship):
         :param parent: The parent of the ship.
         """
         # Call the parent constructor.
-        super().__init__(parent, 4, "BattleShip")
+        super().__init__(FleetModel.BATTLESHIP, parent, 4, "BattleShip")
 
 
-class Cruiser(Ship):
+class Cruiser(ShipWidget):
     """
     Class representing a cruiser.
     """
@@ -207,10 +208,10 @@ class Cruiser(Ship):
         :param parent: The parent of the ship.
         """
         # Call the parent constructor.
-        super().__init__(parent, 3, "Cruiser")
+        super().__init__(FleetModel.CRUISER, parent, 3, "Cruiser")
 
 
-class PatrolBoat(Ship):
+class PatrolBoat(ShipWidget):
     """
     Class representing a patrol boat.
     """
@@ -222,10 +223,10 @@ class PatrolBoat(Ship):
         :param parent: The parent of the ship.
         """
         # Call the parent constructor.
-        super().__init__(parent, 2, "PatrolBoat")
+        super().__init__(FleetModel.PATROLBOAT, parent, 2, "PatrolBoat")
 
 
-class Submarine(Ship):
+class Submarine(ShipWidget):
     """
     Class representing a submarine.
     """
@@ -237,4 +238,4 @@ class Submarine(Ship):
         :param parent: The parent of the ship.
         """
         # Call the parent constructor.
-        super().__init__(parent, 3, "Submarine")
+        super().__init__(FleetModel.SUBMARINE, parent, 3, "Submarine")

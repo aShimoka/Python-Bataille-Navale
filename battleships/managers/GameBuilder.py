@@ -140,10 +140,9 @@ class GameBuilder(engine.LevelManager):
         """
         Loads the next level, as described in the ini file.
         """
-        # Stop all boats from being grabbed.
-        for boat in GameBuilder.board.placed_ships:
-            boat.disable_grab()
-        # Store the boats in the game manager.
-        engine.Engine.game_manager.human_boats = GameBuilder.board.placed_ships
+        # Store boats (the old way) & fleet (new model) in the game manager
+        engine.Engine.game_manager.human_boats = GameBuilder.board.to_ship_list()
+        engine.Engine.game_manager.human_fleet = GameBuilder.board.fleet
+
         # Load the next level.
         engine.Engine.load_level("Game")

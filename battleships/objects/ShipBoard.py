@@ -5,6 +5,7 @@ from battleships.objects.Board import Board
 
 # Import the engine.
 import engine
+from battleships.objects.FleetModel import FleetModel
 
 
 class ShipBoard(Board):
@@ -24,61 +25,38 @@ class ShipBoard(Board):
         # Create the board background.
         ShipBoard.create_background(self, (0, 64, 128), (255, 255, 255))
 
-        # List of all the placed ships.
-        self.placed_ships = []
+        self.fleet = FleetModel()  # a model for storing boat positions & handling computations
 
-    def remove_boat(self, boat):
-        if boat in self.placed_ships:
-            self.placed_ships.remove(boat)
+        # **temporary HACK** so that the ShipBoard.to_ship_list() still functions
+        self._ship_w_cache = dict()
 
-    def place_boat(self, boat):
-        self.placed_ships.append(boat)
+    # this method is deprecated!
+    def proxy_add_boat(self, shipwidget, newcell, rotation):
+        btype = shipwidget.btype
+        self.fleet.add_boat(btype, newcell, rotation)
+        self._ship_w_cache[btype] = shipwidget
+
+    # this method is deprecated!
+    def proxy_update_boat(self, shipwidget, newcell, rotation):
+        btype = shipwidget.btype
+        self.fleet.update_boat(btype, newcell, rotation)
+        self._ship_w_cache[btype] = shipwidget
+
+    # this method is deprecated!
+    def to_ship_list(self):
+        """
+        the method is here only to get retro-compatibility after a big refactoring
+        it could be removed in the near future
+
+        Returns: a list of ShipWidget that cannot be moved
+        """
+        retro_compat_list = list()
+        for shipw in self._ship_w_cache.values():
+            shipw.disable_grab()
+            retro_compat_list.append(shipw)
+        del self._ship_w_cache
+
+        return retro_compat_list
 
     def all_boats_placed(self):
-        return len(self.placed_ships) == 5
-
-    def position_is_valid(self, cell, length, direction):
-        """
-        Checks if the position is valid for the specified ship.
-        :param cell: The cell that is requested.
-        :param length: The length of the ship to place.
-        :param direction: The direction of the ship.
-        :return: True if the position is valid.
-        """
-        # Check if the position is within the bounds.
-        if cell.x >= 0 and cell.y >= 0:
-            if cell.x <= 10 and cell.y <= 10:
-                # If the ship is in the bounds.
-                if direction % 2 == 0:
-                    if cell.x <= 10 - length:
-                        # Check for collisions
-                        return self.collision_check(cell, length, direction) is None
-                else:
-                    if cell.y <= 10 - length:
-                        # Check for collisions
-                        return self.collision_check(cell, length, direction) is None
-
-    @staticmethod
-    def __get_covered_cells(cell, length, direction):
-        covered_cells = []
-        for i in range(length):
-            if direction % 2 == 0:
-                covered_cells.append(i + (cell.x + cell.y * 10))
-            else:
-                covered_cells.append((i * 10) + (cell.x + cell.y * 10))
-
-        return covered_cells
-
-    def collision_check(self, cell, length, direction):
-        # Compute all the cells covered by the ship/shot.
-        covered_cells = ShipBoard.__get_covered_cells(cell, length, direction)
-
-        # Loop through all the ships.
-        for ship in self.placed_ships:
-            ship_cells = ShipBoard.__get_covered_cells(ship.get_cell(), ship.length, ship.rotation)
-            intersect = list(set(covered_cells) & set(ship_cells))
-            if len(intersect) > 0:
-                return ship
-
-        return None
-
+        return self.fleet.is_full()
