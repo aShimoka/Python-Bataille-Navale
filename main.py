@@ -15,6 +15,7 @@ dport = 21337
 argdesc = {
     '-c': 'specify the config file for playing the game (accepted values: solo / multiplayer)',
 
+    '-d': "prints out debug info during execution",
     '-h': "specify the server host (either IP or domain name) if you're the client. Using {} by default".format(dhost),
     '-p': 'specify how to connect to the server. Using port {} by default'.format(dport),
 
@@ -31,6 +32,7 @@ required.add_argument('-c', '--config-file', help=argdesc['-c'], required=True)
 # optional args
 optional = _parser.add_argument_group('optional arguments')
 
+_parser.add_argument('-d', '--debug', help=argdesc['-d'], action='store_true')
 _parser.add_argument('-h', '--host', help=argdesc['-h'], default=dhost)
 _parser.add_argument('-p', '--port', help=argdesc['-p'], default=dport, type=int)
 
@@ -41,7 +43,10 @@ _parser.add_argument("-?", "--help", help=argdesc['-?'], action="help")
 
 # parsing for real now
 battleships.glvars.g_options = _parser.parse_args()
-print(str(battleships.glvars.g_options))  # debug
+battleships.glvars.debug_mode = battleships.glvars.g_options.debug
+if battleships.glvars.debug_mode:
+    print('-- DEBUG MODE ON --')
+    print(str(battleships.glvars.g_options))
 
 # - start the game
 battleships.start(battleships.glvars.g_options)

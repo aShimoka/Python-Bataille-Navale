@@ -96,13 +96,13 @@ class ShipWidget(engine.TexturedGameObject, engine.InputListener, ABC):
                 self.__is_grabbed = False
                 # If the position is valid.
                 newcell = self.get_cell()
-                if self.board.fleet.can_add(self.btype, newcell, self.rotation):
+                if self.board.fleet.can_add(self.btype, newcell, self.compute_dir()):
 
                     # Place the boat on the board.
                     if self.board.fleet.has(self.btype):
-                        self.board.proxy_update_boat(self, newcell, self.rotation)
+                        self.board.proxy_update_boat(self, newcell, self.compute_dir())
                     else:
-                        self.board.proxy_add_boat(self, newcell, self.rotation)
+                        self.board.proxy_add_boat(self, newcell, self.compute_dir())
 
                 else:
                     # Put the boat back at its place.
@@ -137,9 +137,23 @@ class ShipWidget(engine.TexturedGameObject, engine.InputListener, ABC):
         """
         return (self.transform.get_world_position() - self.board.get_top_left()) // self.board.CELL_SIZE
 
+    # the goal here is to better dissociate model and view, if the view/ GUI evolves
+    # the model should not be impacted
+    def compute_dir(self):
+        if self.rotation == 1:
+            return FleetModel.F_SOUTH
+        if self.rotation == 2:
+            return FleetModel.F_EAST
+        if self.rotation == 3:
+            return FleetModel.F_NORTH
+        if self.rotation == 4:
+            return FleetModel.F_WEST
+        raise ValueError('cannot compute dir from self.rotation(= {}) stored in ShipWidget obj'.format(self.rotation))
+
     def rotate(self, angle):
         """
-        Rotates the ship object by the given amount.
+        Rotates the ship object by the given amount - COUNTER-CW
+
         Possible values: 1 (0 deg), 2 (90 deg), 3 (180 deg) or 4 (270 deg)
         :param angle: The angle to rotate the ship by.
         """
