@@ -27,7 +27,9 @@ class GameManager(engine.GameManager):
         # Prepare the players list.
         self.players = {PLAYER_1: None, PLAYER_2: None}
         # Prepare the human boat store.
-        self.human_boats = []
+        self.human_boats = None
+        self.human_fleet = None
+
         # Prepare the winner store.
         self.winner = 0
 

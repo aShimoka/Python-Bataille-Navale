@@ -1,19 +1,16 @@
-#  Copyright © 2019 CAILLAUD Jean-Baptiste.
+#  Copyright © 2019
+#  authored by Jean-Baptiste CAILLAUD et al.
+#  contributor list on: https://github.com/yShimoka/python-bataille-navale
 
-# Import the engine module.
 from copy import copy
 
-import engine
-
-# Import the boards.
-from battleships.objects import ShipBoard, ShotBoard
-# Import the player base class.
-from battleships.players.Player import Player
-# Import the game texts.
-from battleships.objects.GameStateTexts import GameStateTexts
-
-# Import the pygame locals.
 import pygame.locals
+
+import engine
+from battleships import glvars
+from battleships.objects import ShipBoard, ShotBoard
+from battleships.objects.InGameConsole import InGameConsole
+from battleships.players.Player import Player
 
 
 class HumanPlayer(Player, engine.InputListener):
@@ -30,7 +27,8 @@ class HumanPlayer(Player, engine.InputListener):
         super().__init__()
 
         # Prepares the boat list.
-        self.boat_list = []
+        self.boat_list = None
+        self.fleet = None
 
         # Prepare the boards.
         self.ship_board = None
@@ -44,6 +42,7 @@ class HumanPlayer(Player, engine.InputListener):
         """
         # Loads the boat list.
         self.boat_list = engine.Engine.game_manager.human_boats
+        self.fleet = engine.Engine.game_manager.human_fleet
 
         # Create the ships board.
         self.ship_board = ShipBoard(engine.Engine.scene)
@@ -57,8 +56,8 @@ class HumanPlayer(Player, engine.InputListener):
         self.shot_board.transform.position = engine.math.Vector2(256, 256)
 
         # Create the texts.
-        self.texts = GameStateTexts(engine.Engine.scene)
-        self.texts.transform.position = engine.math.Vector2(256, 564)
+        self.texts = InGameConsole(engine.Engine.scene)
+        self.texts.transform.position = engine.math.Vector2(256, 608)
 
         # Add the boats back to the tree.
         for ship in self.boat_list:
@@ -69,20 +68,20 @@ class HumanPlayer(Player, engine.InputListener):
         """
         Starts the turn of the human player.
         """
-        self.texts.show_text(self.texts.TEXT_GAME_NEW_TURN)
+        self.texts.show_std_text(self.texts.TEXT_GAME_NEW_TURN)
 
     def end_turn(self):
         """
         Ends the player turn.
         """
-        self.texts.show_text(self.texts.TEXT_GAME_END_TURN)
+        self.texts.show_std_text(self.texts.TEXT_GAME_END_TURN)
 
     def request_shot(self):
         """
         Triggers the player's fire mode.
         """
         # Display the text.
-        self.texts.show_text(self.texts.TEXT_GAME_REQ_FIRE)
+        self.texts.show_std_text(self.texts.TEXT_GAME_REQ_FIRE)
 
         # Display the shots board.
         self.shot_board.visible = True
@@ -100,7 +99,7 @@ class HumanPlayer(Player, engine.InputListener):
         if super().fire(at):
             engine.Engine.play_sound("Fire")
             # Display the text.
-            self.texts.show_text(self.texts.TEXT_GAME_DO_SHOOT)
+            self.texts.show_std_text(self.texts.TEXT_GAME_DO_SHOOT)
             return True
         else:
             return False
@@ -111,43 +110,40 @@ class HumanPlayer(Player, engine.InputListener):
         :param at: Where the shot was made.
         """
         # Get the touched boat.
-        touched = self.ship_board.collision_check(at, 1, 1)
+        touched_t = self.fleet.collision_check(at, 1, 1)
 
         # Display the text.
-        self.texts.show_text(self.texts.TEXT_GAME_REQ_HIT)
+        self.texts.show_std_text(self.texts.TEXT_GAME_REQ_HIT)
 
         # Add a hit marker.
         col = engine.TexturedGameObject(
             self.ship_board,
-            "WaterSplash" if touched is None else "BoatDamage",
+            "WaterSplash" if touched_t is None else "BoatDamage",
             engine.math.Vector2(48, 48)
         )
         col.transform.position = (at * self.shot_board.CELL_SIZE) - (self.shot_board.get_size() / 2)
         col.transform.offset = copy(engine.math.UNIT_VECTOR)
 
         # Compute the hit status.
-        if touched is None:
+        if touched_t is None:
             engine.Engine.play_sound("WaterExplosion")
             # Tell the game that he did not hit.
             self.hit(at, self.SHOT_HIT_TYPE_MISS)
-        else:
-            engine.Engine.play_sound("Explosion")
-            # Increment the damages on the boat.
-            touched.damage += 1
+            return
 
-            # If the ship is sunk.
-            if touched.damage >= touched.length:
-                # If all ships are sunk
-                all_sunk = True
-                for ship in self.ship_board.placed_ships:
-                    if ship.damage < ship.length:
-                        all_sunk = False
-                        break
-                # Tell the game that he sunk a ship.
-                self.hit(at, self.SHOT_HIT_TYPE_GAME_OVER if all_sunk else self.SHOT_HIT_TYPE_HIT_AND_SUNK)
-            else:
-                # Tell the game that he hit a ship.
-                self.hit(at, self.SHOT_HIT_TYPE_HIT)
+        engine.Engine.play_sound("Explosion")
+        # Increment the damages on the boat.
+        self.fleet.damage(touched_t)
+
+        if not self.fleet.is_sunk(touched_t):  # hit, but not sunk
+            self.hit(at, self.SHOT_HIT_TYPE_HIT)
+
+        else:
+            if self.fleet.is_sunk():  # all ships just sunk
+                self.hit(at, self.SHOT_HIT_TYPE_GAME_OVER)
+
+            else:  # some ships remain
+                self.hit(at, self.SHOT_HIT_TYPE_HIT_AND_SUNK)
 
     def hit(self, at: engine.math.Vector2, hit_status: int):
         """
@@ -157,11 +153,11 @@ class HumanPlayer(Player, engine.InputListener):
         """
         super().hit(at, hit_status)
         if hit_status == self.SHOT_HIT_TYPE_MISS:
-            self.texts.show_text(self.texts.TEXT_GAME_GET_HIT_MISS)
+            self.texts.show_std_text(self.texts.TEXT_GAME_GET_HIT_MISS)
         elif hit_status == self.SHOT_HIT_TYPE_HIT:
-            self.texts.show_text(self.texts.TEXT_GAME_GET_HIT_HIT)
+            self.texts.show_std_text(self.texts.TEXT_GAME_GET_HIT_HIT)
         else:
-            self.texts.show_text(self.texts.TEXT_GAME_GET_HIT_SUNK)
+            self.texts.show_std_text(self.texts.TEXT_GAME_GET_HIT_SUNK)
 
     def show_hit(self, at: engine.math.Vector2, hit_type: int):
         """
@@ -171,11 +167,15 @@ class HumanPlayer(Player, engine.InputListener):
         """
         # Call the parent method.
         super().show_hit(at, hit_type)
+
+        if hit_type == self.SHOT_HIT_TYPE_MISS:
+            adhoc_texture_path = "Miss_theme{}".format(glvars.colortheme)
+        else:
+            adhoc_texture_path = "Hit_theme{}".format(glvars.colortheme)
+
         # Create the rect on the shot board.
         col = engine.TexturedGameObject(
-            self.shot_board,
-            "Miss" if hit_type == self.SHOT_HIT_TYPE_MISS else "Hit",
-            engine.math.Vector2(48, 48)
+            self.shot_board, adhoc_texture_path, engine.math.Vector2(48, 48)
         )
         col.transform.position = (at * self.shot_board.CELL_SIZE) - (self.shot_board.get_size() / 2)
         col.transform.offset = copy(engine.math.UNIT_VECTOR)
@@ -183,16 +183,16 @@ class HumanPlayer(Player, engine.InputListener):
 
         # Show the hit status.
         if hit_type == self.SHOT_HIT_TYPE_MISS:
-            self.texts.show_text(self.texts.TEXT_GAME_SHOW_HIT_MISS)
+            self.texts.show_std_text(self.texts.TEXT_GAME_SHOW_HIT_MISS)
         elif hit_type == self.SHOT_HIT_TYPE_HIT:
-            self.texts.show_text(self.texts.TEXT_GAME_SHOW_HIT_HIT)
+            self.texts.show_std_text(self.texts.TEXT_GAME_SHOW_HIT_HIT)
         else:
-            self.texts.show_text(self.texts.TEXT_GAME_SHOW_HIT_SUNK)
+            self.texts.show_std_text(self.texts.TEXT_GAME_SHOW_HIT_SUNK)
 
     def await_opponent_shot(self):
         self.shot_board.visible = False
         self.ship_board.visible = True
-        self.texts.show_text(self.texts.TEXT_GAME_AWAIT_SHOT)
+        self.texts.show_std_text(self.texts.TEXT_GAME_AWAIT_SHOT)
 
     def handle_input(self, event):
         """

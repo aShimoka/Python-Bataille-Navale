@@ -5,6 +5,7 @@ import engine
 import sys
 
 # Import the player indices.
+from battleships import glvars
 from battleships.managers.GameManager import PLAYER_1, PLAYER_2
 # Import the Player class.
 from battleships.players.Player import Player
@@ -18,9 +19,6 @@ class Game(engine.LevelManager):
 
     # List of all the player indices.
     PLAYERS = [PLAYER_1, PLAYER_2]
-
-    # Delay between each phase of the game.
-    DELAY = 2
 
     # List of all the phases of the game.
     PHASE_PREPARE = -1
@@ -41,15 +39,19 @@ class Game(engine.LevelManager):
         """
         super().__init__(config)
 
+        # the _delay (object's protected attribute) determines how long one waits between each phase of the game
+        self._delay = 2.0  # default hardcoded delay, in sec
+        if 'Gameplay' in self.config and 'delay' in self.config['Gameplay']:
+            self._delay = float(self.config['Gameplay']['delay'])
+
         # Prepare the timer.
         self.timer = 0
 
         # Set the current player index.
         self.current_player_index = 0
         # If we are the client, the server goes first.
-        for i in range(len(sys.argv)):
-            if sys.argv[i] == "--client":
-                self.current_player_index = 1
+        if not glvars.g_options.server:
+            self.current_player_index = 1
 
         # Prepare the phase counter.
         self.__current_phase = Game.PHASE_PREPARE
@@ -77,7 +79,7 @@ class Game(engine.LevelManager):
         self.timer += dt
 
         # If the timer reached the end.
-        if self.timer > Game.DELAY:
+        if self.timer > self._delay:
             # Reset the timer.
             self.timer = 0
 
@@ -104,6 +106,12 @@ class Game(engine.LevelManager):
         # Store the effect of the shot.
         self.__current_fire_location = at
         self.__current_fire_effect = hit_result
+
+        # provide feedback to the bot, if its a solo game
+        if glvars.g_options.config_file == 'solo':
+            pl = self.__get_current_player()
+            if not pl.is_human():
+                pl.input_feedback(at.tuple(), hit_result)
 
         # Move on to the hit response.
         self.__current_phase = self.PHASE_SHOW_HIT

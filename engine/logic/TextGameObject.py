@@ -1,12 +1,11 @@
-#  Copyright © 2019 CAILLAUD Jean-Baptiste.
+#  Copyright © 2019
+#  authored by Jean-Baptiste CAILLAUD et al.
+#  contributor list on: https://github.com/yShimoka/python-bataille-navale
 
-# Import the pygame module.
 import pygame
 
-# Import the rendered base class.
+import engine.logic.Math as Emath
 from engine.logic.Textured import TexturedGameObject
-# Import the math module
-import engine.logic.Math as math
 
 
 class TextGameObject(TexturedGameObject):
@@ -31,14 +30,23 @@ class TextGameObject(TexturedGameObject):
         :param text: The text to render.
         :param color: The color of the rendered text.
         """
-        super().__init__(parent, None, math.ZERO_VECTOR)
+        super().__init__(parent, None, Emath.ZERO_VECTOR)
         # Load the font.
         self.font = TextGameObject.__load_font(font_name, size)
-        self.text = text
+        self._text = text
 
         # Render the text.
-        self.texture = self.font.render(self.text, True, color)
-        self.size = math.Vector2(self.texture.get_width(), self.texture.get_height())
+        self._color = color
+        self.texture = self.font.render(self._text, True, self._color)
+        self.size = Emath.Vector2(self.texture.get_width(), self.texture.get_height())
+
+    def get_color(self):
+        return self._color
+
+    def set_color(self, new_color):
+        self._color = new_color
+        self.texture = self.font.render(self._text, True, new_color)
+        self.rendered = None  # force re-rendering
 
     @classmethod
     def __load_font(cls, font_name, size):

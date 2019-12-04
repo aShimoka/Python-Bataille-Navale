@@ -31,6 +31,10 @@ class Player(ABC):
         # List of all the moves made by this player.
         self.moves = {}
 
+    @classmethod
+    def is_human(cls):
+        return True
+
     def pre_game_prepare(self):
         return True
 
