@@ -18,7 +18,7 @@ Simply clone the repository, and run the [main.py](main.py) script file
 
 **Example:**
 
-`main.py -c SingleplayerConfig`
+`main.py -c solo`
 
 For more information, type `main.py -?` or `main.py --help`
 
