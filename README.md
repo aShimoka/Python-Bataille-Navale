@@ -24,5 +24,5 @@ For more information, type `main.py -?` or `main.py --help`
 
 ## Authors / contributor list
 
-* [yShimoka](github.com/yShimoka) - game engine & main game features
-* [wkta](https://github.com/wkta) - artifical opponent & various improvements (speed, arg parsing...)
+* [yShimoka](https://github.com/yShimoka)- game engine, UI, main game features
+* [wkta](https://github.com/wkta)- artifical opponent, various improvements: arg parsing, speed, etc.
